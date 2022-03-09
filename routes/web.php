@@ -32,6 +32,7 @@ Route::middleware('auth:sanctum', 'verified')->group(function(){
         Route::get('/ticket/view/{id}', 'view');
         Route::post('/ticket/comment/store', 'store_comment');
         Route::post('/ticket/close', 'close_ticket');
+        Route::get('/ticket/file/{id}', 'download');
     });
 
     //Hardware Requests

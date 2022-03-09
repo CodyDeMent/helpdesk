@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Ticket;
 use App\Models\Comment;
+use App\Models\File;
 use App\Models\AssignTicket;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Storage;
+
 
 class TicketController extends Controller
 {
@@ -23,7 +27,7 @@ class TicketController extends Controller
             'subject' => 'required|max:255',
             'description' => 'required',
             'urgency' => 'required|numeric',
-            'category' => 'required|numeric'
+            'category' => 'required|numeric',
         ]);
 
         $ticket = new Ticket;
@@ -35,6 +39,34 @@ class TicketController extends Controller
         $ticket->status = "Opened";
         $ticket->category_id = $request->category;
         $ticket->save();
+
+        if($request->hasFile('files'))
+        {
+            $allowedfileExtension=['pdf','docx', 'doc', 'txt', 'jpg', 'jpeg', 'png', 'bmp', 'gif', 'svg', 'webp'];
+            $files = $request->file('files');
+            foreach($files as $file){
+                $originalName= $file->getClientOriginalName();
+                $extension = $file->getClientOriginalExtension();
+                $check=in_array($extension,$allowedfileExtension);
+                //dd($check);
+                if($check)
+                {
+                    //$filename = Storage::disk('local')->put('tickets/', $request->ticket_id . "-" . $originalName . $extension);
+                    $name = $ticket->id . "-" . Carbon::now() . "-" . $originalName;
+                    //dd($file);
+                    $file->storeAs('tickets/', $name);
+
+                    $newfile = new File;
+                    $newfile->user_id = Auth::user()->id;
+                    $newfile->ticket_id = $ticket->id;
+                    $newfile->file_name= $name;
+                    $newfile->save();
+                }
+            }
+        }
+
+
+
         return redirect('dashboard')->with('status', 'Your request has been submitted and is being reviewed by the IT Team.');
     }
     public function list()
@@ -97,7 +129,7 @@ class TicketController extends Controller
     {
         $request->validate([
             'ticket_id' => 'required|numeric',
-            'comment' => 'required'
+            'comment' => 'required',
         ]);
 
         $comment = new Comment;
@@ -105,6 +137,33 @@ class TicketController extends Controller
         $comment->user_id = Auth::user()->id;
         $comment->comment = $request->comment;
         $comment->save();
+
+        if($request->hasFile('files'))
+        {
+            $allowedfileExtension=['pdf','docx', 'doc', 'txt', 'jpg', 'jpeg', 'png', 'bmp', 'gif', 'svg', 'webp'];
+            $files = $request->file('files');
+            foreach($files as $file){
+                $originalName= $file->getClientOriginalName();
+                $extension = $file->getClientOriginalExtension();
+                $check=in_array($extension,$allowedfileExtension);
+                //dd($check);
+                if($check)
+                {
+                    //$filename = Storage::disk('local')->put('tickets/', $request->ticket_id . "-" . $originalName . $extension);
+                    $name = $request->ticket_id . "-" . Carbon::now() . "-" . $originalName;
+                    //dd($file);
+                    $file->storeAs('tickets/', $name);
+
+                    $newfile = new File;
+                    $newfile->user_id = Auth::user()->id;
+                    $newfile->comment_id = $comment->id;
+                    $newfile->file_name= $name;
+                    $newfile->save();
+                }
+            }
+        }
+
+
 
         if(Auth::user()->role == "IT"){
             Ticket::where('id', $request->ticket_id)->update(['updated_at' => Carbon::now(), 'status' => "Replied"]);
@@ -122,5 +181,30 @@ class TicketController extends Controller
         ]);
         Ticket::where('id', $request->ticket_id)->update(['updated_at' => Carbon::now(), 'status' => "Closed"]);
         return redirect('dashboard');
+    }
+    public function download(Request $request)
+    {
+        $file = File::select('file_name', 'user_id', 'ticket_id', 'comment_id')->where('id', '=', $request->id)->get();
+        foreach($file as $file){
+            if($file->ticket_id != NULL)
+                $ticket = Ticket::select('id', 'submitter_id', 'for_id')->where('id', '=', $file->ticket_id)->get();
+            else
+            {
+                $ticket = DB::table('comments')
+                ->join('tickets', 'ticket_id', 'tickets.id')
+                ->where('comments.id', '=', $file->comment_id)
+                ->select('tickets.submitter_id as submitter_id', 'tickets.for_id as for_id')->get();
+            }
+
+            foreach($ticket as $ticket){
+                echo $ticket->for_id;
+                if(Auth::user()->role == "IT" || Auth::user()->id == $file->user_id || $ticket->submitter_id == Auth::user()->id ||
+                $ticket->for_id == Auth::user()->id)
+                    return Storage::download('tickets/' . $file->file_name);
+                else
+                    return redirect('dashboard')->with('status', 'No access');
+            }
+
+        }
     }
 }

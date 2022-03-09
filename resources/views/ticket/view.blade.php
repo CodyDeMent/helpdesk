@@ -99,6 +99,12 @@ use App\Models\AssignTicket;
                             <div class="row">
                                 <div class="col-2">
                                     <b>Description:</b>
+                                    @foreach (DB::table('files')
+                                        ->where('ticket_id', '=', $ticket->id)
+                                        ->select('file_name', 'id')
+                                        ->get() as $file)
+                                            <br><a href="/ticket/file/{{$file->id}}">{{$file->file_name}}</a>
+                                        @endforeach
                                 </div>
                                 <div class="col-7">
                                     <p>
@@ -114,7 +120,7 @@ use App\Models\AssignTicket;
                             @foreach (DB::table('comments')
                             ->join('users', 'user_id', 'users.id')
                             ->where('ticket_id', '=', $ticket->id)
-                            ->select('users.name as name', 'comments.comment as comment', 'comments.created_at as time')
+                            ->select('users.name as name', 'comments.comment as comment', 'comments.created_at as time', 'comments.id')
                             ->orderBy('time', 'desc')
                             ->get() as $comment)
                                 <div class="row">
@@ -129,6 +135,12 @@ use App\Models\AssignTicket;
                                 <div class="row">
                                     <div class="col-10">
                                         {{$comment->comment}}
+                                        @foreach (DB::table('files')
+                                        ->where('comment_id', '=', $comment->id)
+                                        ->select('file_name', 'id')
+                                        ->get() as $file)
+                                            <br><a href="/ticket/file/{{$file->id}}">{{$file->file_name}}</a>
+                                        @endforeach
                                     </div>
                                 </div><hr>
                             @endforeach
@@ -136,13 +148,14 @@ use App\Models\AssignTicket;
                     </div><hr>
                     <div class="row">
                         <div class="col">
-                            <form name="comments" id="comment" method="post" action="{{url('ticket/comment/store')}}">
+                            <form name="comments" id="comment" method="post" action="{{url('ticket/comment/store')}}" enctype="multipart/form-data">
                                 @csrf
                                 <div class="form-group">
                                     <label for="comments">New Comment</label>
                                     <textarea name="comment" class="form-control" required></textarea>
                                 </div>
                                 <input hidden name="ticket_id" value={{$ticket->id}}>
+                                <input type="file" multiple name="files[]" class="form-control">
                                 <button type="submit" class="btn btn-primary">Comment</button>
                             </form>
                         </div>

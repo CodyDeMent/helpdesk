@@ -21,7 +21,7 @@
                     </div>
                 @endif
 
-                <form name="technical-support-form" id="technical-support-form" method="post" action="{{url('ticket/new/store')}}">
+                <form name="technical-support-form" id="technical-support-form" method="post" action="{{url('ticket/new/store')}}" enctype="multipart/form-data">
                     @csrf
                     <div class="form-group">
                         <label for="technicalSupport">Category</label>
@@ -49,6 +49,11 @@
                             <option value=1>Very Low</option>
                           </select>
                     </div>
+                    <div class="form-group">
+                        <input type="file" multiple name="files[]" class="form-control">
+                    </div>
+
+
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
             </div>

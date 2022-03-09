@@ -14,6 +14,11 @@
                 <div class="container">
                     <div class="row">
                         <div class="col">
+                            <b>Open Tickets</b>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
                             Category
                         </div>
                         <div class="col">
@@ -56,6 +61,57 @@
                             </div>
                         @endif
                     @endforeach
+
+                    <div class="row">
+                        <div class="col">
+                            <b>Closed Tickets</b>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            Category
+                        </div>
+                        <div class="col">
+                            Urgency
+                        </div>
+                        <div class="col">
+                            User
+                        </div>
+                        <div class="col-3">
+                            Last Update
+                        </div>
+                        <div class="col">
+                            Status
+                        </div>
+                        <div class="col">
+                        </div>
+                    </div>
+                    <hr>
+                    @foreach ($tickets as $ticket)
+                        @if ($ticket->status == "Closed")
+                            <div class="row">
+                                <div class="col">
+                                    {{$ticket->category_name}}
+                                </div>
+                                <div class="col">
+                                    {{$ticket->urgency}}
+                                </div>
+                                <div class="col">
+                                    {{$ticket->ticket_for}}
+                                </div>
+                                <div class="col-3">
+                                    {{$ticket->updated_at}}
+                                </div>
+                                <div class="col">
+                                    {{$ticket->status}}
+                                </div>
+                                <div class="col">
+                                    <p onclick="location.href='/ticket/view/{{$ticket->id}}'" class="pointer">View Ticket</p>
+                                </div>
+                            </div>
+                        @endif
+                    @endforeach
+
 
 
                 </div>
