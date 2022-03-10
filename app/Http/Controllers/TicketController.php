@@ -7,6 +7,8 @@ use App\Models\Ticket;
 use App\Models\Comment;
 use App\Models\File;
 use App\Models\AssignTicket;
+use App\Mail\NewTicket;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -64,6 +66,17 @@ class TicketController extends Controller
                 }
             }
         }
+
+        $tickets = Ticket::join('users as ts', 'submitter_id', '=', 'ts.id')
+        ->join('users as tf', 'for_id', '=', 'tf.id')
+        ->join('ticket_categories as tc', 'tickets.category_id', '=', 'tc.id')
+        ->select('tickets.id','tf.name as ticket_for', 'ts.name as ticket_submitter',
+         'tc.category_name', 'tickets.urgency', 'tickets.updated_at', 'tickets.status',
+         'tickets.subject', 'tickets.description', 'tickets.submitter_id', 'tickets.for_id','tickets.created_at', 'tickets.status')
+        ->where('tickets.id', '=', $ticket->id)
+        ->get();
+        foreach($tickets as $t)
+            Mail::to("codydement.bsa@gmail.com")->send(new NewTicket($t));
 
 
 
