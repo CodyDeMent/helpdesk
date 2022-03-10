@@ -61,5 +61,7 @@ Route::middleware('isIT')->group(function () {
         Route::get('/tickets', 'list')->name('tickets.view');
         Route::post('/ticket/assign', 'assign');
         Route::post('/ticket/assign/update', 'update_assign');
+        Route::get('/tickets/categories', 'categories')->name('categories');
+        Route::post('ticket/category/store', 'category_store');
     });
 });

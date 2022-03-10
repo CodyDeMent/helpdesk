@@ -10,6 +10,7 @@ use App\Models\AssignTicket;
 use App\Mail\NewTicket;
 use App\Mail\NewComment;
 use App\Mail\CloseTicket;
+use App\Models\TicketCategory;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -236,5 +237,22 @@ class TicketController extends Controller
             }
 
         }
+    }
+    public function categories()
+    {
+        $categories = TicketCategory::select('category_name')->get();
+        return view('ticket.categories', $categories);
+    }
+
+    public function category_store(Request $request)
+    {
+        $request->validate([
+            'category_name' => 'required|unique:ticket_categories|max:75',
+        ]);
+        $category = new TicketCategory;
+        $category->category_name = $request->category_name;
+        $category->save();
+
+        return redirect('/tickets/categories');
     }
 }
