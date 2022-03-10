@@ -8,6 +8,8 @@ use App\Models\Comment;
 use App\Models\File;
 use App\Models\AssignTicket;
 use App\Mail\NewTicket;
+use App\Mail\NewComment;
+use App\Mail\CloseTicket;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -70,13 +72,11 @@ class TicketController extends Controller
         $tickets = Ticket::join('users as ts', 'submitter_id', '=', 'ts.id')
         ->join('users as tf', 'for_id', '=', 'tf.id')
         ->join('ticket_categories as tc', 'tickets.category_id', '=', 'tc.id')
-        ->select('tickets.id','tf.name as ticket_for', 'ts.name as ticket_submitter',
-         'tc.category_name', 'tickets.urgency', 'tickets.updated_at', 'tickets.status',
-         'tickets.subject', 'tickets.description', 'tickets.submitter_id', 'tickets.for_id','tickets.created_at', 'tickets.status')
+        ->select('tickets.id', 'tf.email', 'tc.category_name', 'tickets.urgency', 'tickets.subject', 'tickets.description', 'ts.name')
         ->where('tickets.id', '=', $ticket->id)
         ->get();
         foreach($tickets as $t)
-            Mail::to("codydement.bsa@gmail.com")->send(new NewTicket($t));
+            Mail::to($t->email)->send(new NewTicket($t));
 
 
 
@@ -184,6 +184,14 @@ class TicketController extends Controller
             Ticket::where('id', $request->ticket_id)->update(['updated_at' => Carbon::now(), 'status' => "Pending Response"]);
         }
 
+        $comments = Comment::join('users', 'user_id', '=', 'users.id')
+        ->join('tickets', 'ticket_id', '=', 'tickets.id')
+        ->select('tickets.id', 'comments.comment', 'users.name', 'tickets.urgency', 'tickets.subject', 'users.email')
+        ->where('comments.id', $comment->id)
+        ->get();
+        foreach($comments as $c)
+            Mail::to($c->email)->send(new NewComment($c));
+
 
         return redirect('ticket/view/' . $request->ticket_id);
     }
@@ -193,6 +201,15 @@ class TicketController extends Controller
             'ticket_id' => 'required|numeric'
         ]);
         Ticket::where('id', $request->ticket_id)->update(['updated_at' => Carbon::now(), 'status' => "Closed"]);
+
+        $tickets = Ticket::join('users as ts', 'submitter_id', '=', 'ts.id')
+        ->join('users as tf', 'for_id', '=', 'tf.id')
+        ->join('ticket_categories as tc', 'tickets.category_id', '=', 'tc.id')
+        ->select('tickets.id', 'tf.name', 'tf.email', 'tickets.subject')
+        ->where('tickets.id', '=', $request->ticket_id)
+        ->get();
+        foreach($tickets as $t)
+            Mail::to($t->email)->send(new CloseTicket($t, Auth::user()->name));
         return redirect('dashboard');
     }
     public function download(Request $request)
