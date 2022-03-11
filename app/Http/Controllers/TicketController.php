@@ -11,6 +11,7 @@ use App\Mail\NewTicket;
 use App\Mail\NewComment;
 use App\Mail\CloseTicket;
 use App\Models\TicketCategory;
+use App\Models\Setting;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -27,6 +28,10 @@ class TicketController extends Controller
     }
     public function store(Request $request)
     {
+        $settings = Setting::all();
+        foreach ($settings as $setting){
+            $setup = $setting;
+        }
 
         $request->validate([
             'subject' => 'required|max:255',
@@ -44,6 +49,12 @@ class TicketController extends Controller
         $ticket->status = "Opened";
         $ticket->category_id = $request->category;
         $ticket->save();
+        if($setup->default_assignee != NULL){
+            $assignee = new AssignTicket;
+            $assignee->ticket_id = $ticket->id;
+            $assignee->user_id = $setup->default_assignee;
+            $assignee->save();
+        }
 
         if($request->hasFile('files'))
         {
@@ -77,7 +88,7 @@ class TicketController extends Controller
         ->where('tickets.id', '=', $ticket->id)
         ->get();
         foreach($tickets as $t)
-            Mail::to($t->email)->send(new NewTicket($t));
+            Mail::to($setup->default_email)->send(new NewTicket($t));
 
 
 

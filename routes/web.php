@@ -1,6 +1,10 @@
 <?php
+
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TicketController;
+use App\Http\Controllers\RoleController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use PHPUnit\TextUI\XmlConfiguration\Group;
 
 /*
@@ -18,11 +22,14 @@ Route::get('/', function () {
     return redirect('login');
 });
 
-Route::middleware(['auth:sanctum', 'verified'])->get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');
+
 
 Route::middleware('auth:sanctum', 'verified')->group(function(){
+
+    Route::controller(DashboardController::class)->group(function(){
+        Route::get('/dashboard', 'index')->name('dashboard');
+        Route::post('/setup/store', 'store');
+    });
 
     Route::controller(TicketController::class)->group(function(){
         //New Tickets
@@ -63,5 +70,10 @@ Route::middleware('isIT')->group(function () {
         Route::post('/ticket/assign/update', 'update_assign');
         Route::get('/tickets/categories', 'categories')->name('categories');
         Route::post('ticket/category/store', 'category_store');
+    });
+
+    Route::controller(RoleController::class)->group(function(){
+        Route::get('/update/role', 'index')->name('roles');
+        Route::post('/update/role', 'store');
     });
 });
