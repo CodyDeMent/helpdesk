@@ -42,20 +42,20 @@ use App\Models\AssignTicket;
                             @if (count($assignees) < 1)
                                 Unassigned<br><hr>
                                 @if (Auth::user()->role == "IT")
-                                <form name="assignUser" id="assignUser" method="post" action="{{url('ticket/assign')}}">
-                                    @csrf
-                                    <div class="form-group">
-                                        <label for="assignUser">Assign User</label>
-                                        <select name="user" class="form-control" required>
-                                            @foreach (DB::table('users')->where('role', '=', 'IT')->select('id', 'name')->get() as $it)
-                                            <option value={{$it->id}}>{{$it->name}}</option>
-                                            @endforeach
-                                        </select>
-                                        <input hidden name="ticket_id" value={{$ticket->id}}>
-                                    </div>
-                                    <button type="submit" class="btn btn-primary">Assign</button>
-                                </form>
-                            @endif
+                                    <form name="assignUser" id="assignUser" method="post" action="{{url('ticket/assign')}}">
+                                        @csrf
+                                        <div class="form-group">
+                                            <label for="assignUser">Assign User</label>
+                                            <select name="user" class="form-control" required>
+                                                @foreach (DB::table('users')->where('role', '=', 'IT')->select('id', 'name')->get() as $it)
+                                                <option value={{$it->id}}>{{$it->name}}</option>
+                                                @endforeach
+                                            </select>
+                                            <input hidden name="ticket_id" value={{$ticket->id}}>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">Assign</button>
+                                    </form>
+                                @endif
                             @else
                                 @foreach ($assignees as $assignee)
                                     {{$assignee->name}} <br><hr>

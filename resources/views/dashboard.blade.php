@@ -2,19 +2,19 @@
     if (Auth::user()->role == "IT") {
         $assignedTickets = DB::table('tickets')
         ->join('assign_tickets', 'tickets.id', '=', 'assign_tickets.ticket_id')
-        ->join('users as ts', 'tickets.submitter_id', '=', 'ts.id')
+        ->join('users as tf', 'tickets.for_id', '=', 'tf.id')
         ->join('ticket_categories as tc', 'tickets.category_id', '=', 'tc.id')
         ->where('assign_tickets.user_id', Auth::user()->id)
-        ->select('tickets.id', 'ts.name as ticket_submitter', 'tc.category_name as category_name', 'tickets.urgency', 'tickets.updated_at', 'tickets.status')
+        ->select('tickets.id', 'tf.name as ticket_for', 'tc.category_name as category_name', 'tickets.urgency', 'tickets.updated_at', 'tickets.status', 'tickets.subject')
         ->orderByDesc('updated_at')
         ->get();
 
         //dd($assignedTickets);
     }
-    $tickets = DB::table('tickets')->join('users as ts', 'submitter_id', '=', 'ts.id')
+    $tickets = DB::table('tickets')->join('users as tf', 'for_id', '=', 'tf.id')
         ->join('ticket_categories as tc', 'tickets.category_id', '=', 'tc.id')
         ->where('tickets.for_id', Auth::user()->id)
-        ->select('tickets.id', 'ts.name as ticket_submitter', 'tc.category_name', 'tickets.urgency', 'tickets.updated_at', 'tickets.status')
+        ->select('tickets.id', 'tf.name as ticket_for', 'tc.category_name', 'tickets.urgency', 'tickets.updated_at', 'tickets.status')
         ->orderByDesc('updated_at')
         ->get();
         //dd($tickets);
@@ -39,10 +39,16 @@
                     </div>
                     <div class="row">
                         <div class="col">
+                            Subject
+                        </div>
+                        <div class="col">
                             Category
                         </div>
                         <div class="col">
                             Urgency
+                        </div>
+                        <div class="col">
+                            User
                         </div>
                         <div class="col-3">
                             Last Update
@@ -58,10 +64,16 @@
                         @if ($ticket->status != "Closed")
                             <div class="row">
                                 <div class="col">
+                                    {{$ticket->subject}}
+                                </div>
+                                <div class="col">
                                     {{$ticket->category_name}}
                                 </div>
                                 <div class="col">
                                     {{$ticket->urgency}}
+                                </div>
+                                <div class="col">
+                                    {{$ticket->ticket_for}}
                                 </div>
                                 <div class="col-3">
                                     {{$ticket->updated_at}}

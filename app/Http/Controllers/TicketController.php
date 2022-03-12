@@ -38,16 +38,17 @@ class TicketController extends Controller
             'description' => 'required',
             'urgency' => 'required|numeric',
             'category' => 'required|numeric',
+            'for' => 'required|numeric',
         ]);
 
         $ticket = new Ticket;
         $ticket->submitter_id = Auth::user()->id;
-        $ticket->for_id = Auth::user()->id;
         $ticket->subject = $request->subject;
         $ticket->description = $request->description;
         $ticket->urgency = $request->urgency;
         $ticket->status = "Opened";
         $ticket->category_id = $request->category;
+        $ticket->for_id = $request->for;
         $ticket->save();
         if($setup->default_assignee != NULL){
             $assignee = new AssignTicket;
@@ -100,7 +101,7 @@ class TicketController extends Controller
         $tickets = Ticket::join('users as ts', 'submitter_id', '=', 'ts.id')
         ->join('users as tf', 'for_id', '=', 'tf.id')
         ->join('ticket_categories as tc', 'tickets.category_id', '=', 'tc.id')
-        ->select('tickets.id','tf.name as ticket_for', 'ts.name as ticket_submitter', 'tc.category_name', 'tickets.urgency', 'tickets.updated_at', 'tickets.status')
+        ->select('tickets.id','tf.name as ticket_for', 'ts.name as ticket_submitter', 'tc.category_name', 'tickets.urgency', 'tickets.updated_at', 'tickets.status', 'tickets.subject')
         ->get();
 
         //return $tickets;
@@ -198,11 +199,17 @@ class TicketController extends Controller
 
         $comments = Comment::join('users', 'user_id', '=', 'users.id')
         ->join('tickets', 'ticket_id', '=', 'tickets.id')
-        ->select('tickets.id', 'comments.comment', 'users.name', 'tickets.urgency', 'tickets.subject', 'users.email')
+        ->join('users as tf', 'tickets.for_id', '=', 'tf.id')
+        ->join('assign_tickets', 'comments.ticket_id', '=', 'assign_tickets.ticket_id')
+        ->join('users as au', 'assign_tickets.user_id', '=', 'au.id')
+        ->select('tickets.id', 'comments.comment', 'users.name', 'tickets.urgency', 'tickets.subject', 'tf.email', 'au.email as auemail')
         ->where('comments.id', $comment->id)
         ->get();
-        foreach($comments as $c)
-            Mail::to($c->email)->send(new NewComment($c));
+        foreach($comments as $c){
+            foreach([$c->email, $c->auemail] as $receiver)
+                Mail::to($receiver)->send(new NewComment($c));
+        }
+
 
 
         return redirect('ticket/view/' . $request->ticket_id);

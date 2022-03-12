@@ -26,7 +26,10 @@
                         {{ __('Categories') }}
                     </x-jet-nav-link>
                     <x-jet-nav-link href="{{ route('roles') }}" :active="request()->routeIs('roles')">
-                        {{ __('Update Role') }}
+                        {{ __('Update Roles') }}
+                    </x-jet-nav-link>
+                    <x-jet-nav-link href="{{ route('supports') }}" :active="request()->routeIs('supports')">
+                        {{ __('View Supports') }}
                     </x-jet-nav-link>
                     @endif
                 </div>

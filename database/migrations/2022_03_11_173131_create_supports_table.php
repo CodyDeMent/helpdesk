@@ -13,11 +13,12 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('settings', function (Blueprint $table) {
+        Schema::create('supports', function (Blueprint $table) {
             $table->id();
-            $table->string('default_email');
-            $table->unsignedBigInteger('default_assignee')->nullable();
-            $table->foreign('default_assignee')->references('id')->on('users');
+            $table->unsignedBigInteger('supporter');
+            $table->foreign('supporter')->references('id')->on('users');
+            $table->unsignedBigInteger('supported');
+            $table->foreign('supported')->references('id')->on('users');
             $table->timestamps();
         });
     }
@@ -29,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('settings');
+        Schema::dropIfExists('supports');
     }
 };

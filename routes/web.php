@@ -3,6 +3,7 @@
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SupportsController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use PHPUnit\TextUI\XmlConfiguration\Group;
@@ -75,5 +76,10 @@ Route::middleware('isIT')->group(function () {
     Route::controller(RoleController::class)->group(function(){
         Route::get('/update/role', 'index')->name('roles');
         Route::post('/update/role', 'store');
+    });
+    Route::controller(SupportsController::class)->group(function(){
+        Route::get('/supports/view', 'index')->name('supports');
+        Route::get('/supports/update/{id}', 'add_support');
+        Route::post('/supports/update', 'store');
     });
 });

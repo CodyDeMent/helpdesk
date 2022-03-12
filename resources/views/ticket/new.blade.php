@@ -52,6 +52,23 @@
                     <div class="form-group">
                         <input type="file" multiple name="files[]" class="form-control">
                     </div>
+                    @php
+                        $supported = DB::table('supports')->join('users', 'supports.supported', '=', 'users.id')
+                        ->where('supporter', Auth::user()->id)->select('users.id', 'users.name')->get();
+                    @endphp
+                    @if (count($supported) > 0)
+                    <div class="form-group">
+                        <label for="technicalSupport">Ticket For</label>
+                        <select name="for" class="form-control" required>
+                            <option value={{Auth::user()->id}}>{{Auth::user()->name}}</option>
+                            @foreach ($supported as $s)
+                            <option value={{$s->id}}>{{$s->name}}</option>
+                            @endforeach
+                          </select>
+                    </div>
+                    @else
+                        <input value="{{Auth::user()->id}}" name="for" hidden>
+                    @endif
 
 
                     <button type="submit" class="btn btn-primary">Submit</button>
